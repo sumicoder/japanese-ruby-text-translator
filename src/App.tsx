@@ -143,7 +143,10 @@ const RubyTranslator: React.FC = () => {
         }
     };
     const analyzeFullText = async () => {
-        if (!sourceText) return;
+        if (!sourceText) {
+            alert('文章を入力してください');
+            return;
+        }
 
         try {
             const prompt = `「${sourceText}」に含まれる単語とその読み仮名を「単語:読み仮名」の形式で改行区切りですべて出力してください。単語は漢字のみです、ひらがな、カタカナは出力しないで。単語は「」の中だけ対象にして出力してください。`;
@@ -166,6 +169,7 @@ const RubyTranslator: React.FC = () => {
             }
         } catch (error) {
             console.error('Error analyzing text:', error);
+            alert('分析に失敗しました。\nAPIキーが設定されていないか、\nテキストが正しく抽出できませんでした。\n\n手動でふりがなを入力してください');
         }
     };
 
