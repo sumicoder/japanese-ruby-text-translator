@@ -1,30 +1,45 @@
 import React, { useState, useEffect, useRef } from 'react';
-import * as _ from 'lodash';
 import './App.css';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import _ from 'lodash';
 
 const API_KEY = import.meta.env.VITE_API_KEY; // 取得したAPIキーを設定
 const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+const model = genAI.getGenerativeModel({
+    model: 'gemini-2.0-flash',
+    safetySettings: [
+        {
+            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+    ],
+});
 
-const RubyTranslator = () => {
-    const [sourceText, setSourceText] = useState('');
-    const [coloredText, setColoredText] = useState('');
-    const [rubyPairs, setRubyPairs] = useState([{ tango: '', reading: '', isAbsolute: false }]);
-    const [resultText, setResultText] = useState('');
-    const [suggestions, setSuggestions] = useState([]);
-    const [activePairIndex, setActivePairIndex] = useState(null);
-    const [copySuccess, setCopySuccess] = useState(false);
-    const textareaRef = useRef(null);
-    const suggestionsRef = useRef(null);
+// ルビペアの型定義
+interface RubyPair {
+    tango: string;
+    reading: string;
+    isAbsolute: boolean;
+}
+
+const RubyTranslator : React.FC = () => {
+    const [sourceText, setSourceText] = useState<string>('');
+    const [coloredText, setColoredText] = useState<string>('');
+    const [rubyPairs, setRubyPairs] = useState<RubyPair[]>([{ tango: '', reading: '', isAbsolute: false }]);
+    const [resultText, setResultText] = useState<string>('');
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [activePairIndex, setActivePairIndex] = useState<number | null>(null);
+    const [copySuccess, setCopySuccess] = useState<boolean>(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const suggestionsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         colorizeText();
     }, [sourceText]);
 
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (suggestionsRef.current && !suggestionsRef.current.contains(event.target)) {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
                 setSuggestions([]);
                 setActivePairIndex(null);
             }
@@ -49,7 +64,7 @@ const RubyTranslator = () => {
     };
 
     const handleAddPair = () => {
-        setRubyPairs([...rubyPairs, { tango: '', reading: '' }]);
+        setRubyPairs([...rubyPairs, { tango: '', reading: '', isAbsolute: false }]);
     };
 
     const copyToClipboard = () => {
@@ -67,29 +82,29 @@ const RubyTranslator = () => {
         updatePair(index, 'isAbsolute', checked);
     };
 
-    const updatePair = (index: number, field: string, value: string | boolean) => {
+    const updatePair = (index: number, field: keyof RubyPair, value: string | boolean) => {
         const newPairs = [...rubyPairs];
-        if (typeof value === 'boolean' && field === 'isAbsolute') {
-            newPairs[index][field] = value;
-        } else if (typeof value === 'string' && (field === 'tango' || field === 'reading')) {
-            newPairs[index][field] = value;
-        }
+         if (field === 'isAbsolute' && typeof value === 'boolean') {
+                newPairs[index][field] = value;
+            } else if ((field === 'tango' || field === 'reading') && typeof value === 'string') {
+                newPairs[index][field] = value;
+            }
         setRubyPairs(newPairs);
 
         // 漢字が入力された場合、読み仮名の候補を表示
-        if (field === 'tango' && value) {
+        if (field === 'tango' && typeof value === "string" && value) {
             setActivePairIndex(index);
             generateSuggestions(value);
         }
     };
 
-    const removePair = (index) => {
+    const removePair = (index: number) => {
         const newPairs = [...rubyPairs];
         newPairs.splice(index, 1);
         setRubyPairs(newPairs);
     };
 
-    const generateSuggestions = async (tango) => {
+    const generateSuggestions = async (tango: string) => {
         if (!tango) {
             setSuggestions([]);
             return;
@@ -112,7 +127,7 @@ const RubyTranslator = () => {
         }
     };
 
-    const selectSuggestion = (reading) => {
+    const selectSuggestion = (reading: string) => {
         if (activePairIndex !== null) {
             const newPairs = [...rubyPairs];
             newPairs[activePairIndex].reading = reading;
@@ -122,7 +137,7 @@ const RubyTranslator = () => {
         }
 
         // 予測変換のテキストをクリックしたときに、漢字のinput要素にフォーカスを当てる
-        const tangoInput = document.querySelector(`input[name="tango-${activePairIndex}"]`);
+        const tangoInput = document.querySelector(`input[name="tango-${activePairIndex}"]`) as HTMLInputElement;
         if (tangoInput) {
             tangoInput.focus();
         }
@@ -140,11 +155,11 @@ const RubyTranslator = () => {
             const pairs = text
                 .split('\n')
                 .map((line) => line.match(/([\u4e00-\u9faf\u3040-\u309F\u30A0-\u30FF]+):([\u3040-\u309F]+)/))
-                .filter((match) => match)
-                .map((match) => ({ tango: match[1], reading: match[2] }));
+                .filter((match) => match !== null)
+                .map((match) => ({ tango: match[1], reading: match[2],isAbsolute: false }));
 
             // 重複を除外
-            const uniquePairs = _.uniqBy(pairs, 'tango');
+            const uniquePairs: RubyPair[] = _.uniqBy(pairs, 'tango');
 
             if (uniquePairs.length > 0) {
                 setRubyPairs(uniquePairs);
