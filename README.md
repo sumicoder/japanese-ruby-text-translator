@@ -243,7 +243,7 @@ _:future,
 ```
 <!-- prettier-ignore-end -->
 
-▼ 結果
+▼ 結果<br>
 <img width="242" alt="スクリーンショット 2025-03-11 14 06 26" src="https://github.com/user-attachments/assets/9c3b3dc0-5946-48a0-aeee-cd73462d18d8" />
 
 :::note warn
