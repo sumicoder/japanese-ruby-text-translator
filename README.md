@@ -106,7 +106,7 @@ $ npm run dev
 
 読み上げ機能を使ってみます。
 
-<img alt="<ruby>吾輩<rt>わがはい</rt></ruby>は<ruby>猫<rt>ねこ</rt></ruby>である。を読み上げ機能で読み上げた時の音声を視覚的に分かりやすくした画像" src="https://github.com/user-attachments/assets/1bf25b14-b026-4a04-8521-718882554e08" />
+<img alt="吾輩わがはいは猫ねこである。を読み上げ機能で読み上げた時の音声を視覚的に分かりやすくした画像" src="https://github.com/user-attachments/assets/1bf25b14-b026-4a04-8521-718882554e08" />
 
 -   「わがはいわがはいは」（吾輩わがはい）
 -   「ねこねこである」（猫ねこ）
@@ -242,6 +242,9 @@ _:future,
 }
 ```
 <!-- prettier-ignore-end -->
+
+▼ 結果
+<img width="242" alt="スクリーンショット 2025-03-11 14 06 26" src="https://github.com/user-attachments/assets/9c3b3dc0-5946-48a0-aeee-cd73462d18d8" />
 
 :::note warn
 
