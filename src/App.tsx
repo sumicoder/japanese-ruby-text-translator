@@ -22,7 +22,7 @@ interface RubyPair {
     isAbsolute: boolean;
 }
 
-const RubyTranslator : React.FC = () => {
+const RubyTranslator: React.FC = () => {
     const [sourceText, setSourceText] = useState<string>('');
     const [coloredText, setColoredText] = useState<string>('');
     const [rubyPairs, setRubyPairs] = useState<RubyPair[]>([{ tango: '', reading: '', isAbsolute: false }]);
@@ -84,15 +84,15 @@ const RubyTranslator : React.FC = () => {
 
     const updatePair = (index: number, field: keyof RubyPair, value: string | boolean) => {
         const newPairs = [...rubyPairs];
-         if (field === 'isAbsolute' && typeof value === 'boolean') {
-                newPairs[index][field] = value;
-            } else if ((field === 'tango' || field === 'reading') && typeof value === 'string') {
-                newPairs[index][field] = value;
-            }
+        if (field === 'isAbsolute' && typeof value === 'boolean') {
+            newPairs[index][field] = value;
+        } else if ((field === 'tango' || field === 'reading') && typeof value === 'string') {
+            newPairs[index][field] = value;
+        }
         setRubyPairs(newPairs);
 
         // 漢字が入力された場合、読み仮名の候補を表示
-        if (field === 'tango' && typeof value === "string" && value) {
+        if (field === 'tango' && typeof value === 'string' && value) {
             setActivePairIndex(index);
             generateSuggestions(value);
         }
@@ -156,7 +156,7 @@ const RubyTranslator : React.FC = () => {
                 .split('\n')
                 .map((line) => line.match(/([\u4e00-\u9faf\u3040-\u309F\u30A0-\u30FF]+):([\u3040-\u309F]+)/))
                 .filter((match) => match !== null)
-                .map((match) => ({ tango: match[1], reading: match[2],isAbsolute: false }));
+                .map((match) => ({ tango: match[1], reading: match[2], isAbsolute: false }));
 
             // 重複を除外
             const uniquePairs: RubyPair[] = _.uniqBy(pairs, 'tango');
@@ -192,8 +192,12 @@ const RubyTranslator : React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto mb-40 p-4">
-            <h1 className="text-2xl font-bold mb-4">漢字ルビ変換ツール</h1>
-
+            <div className="flex justify-around mb-4">
+                <h1 className="text-2xl font-bold">漢字ルビ変換ツール</h1>
+                <a className="text-blue-500 underline underline-offset-2 text-xl hover:text-blue-200" href="https://github.com/sumicoder/japanese-ruby-text-translator" target="_blank" rel="noopener noreferrer">
+                    ドキュメント
+                </a>
+            </div>
             <div className="grid grid-cols-1 gap-4">
                 {/* 入力フォーム */}
                 <div className="space-y-4">
