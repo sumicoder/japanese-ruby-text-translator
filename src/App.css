@@ -1,0 +1,44 @@
+@import 'tailwindcss';
+@config "../tailwind.config.js";
+/* ===============================================
+# MARK: 翻訳、読み上げ対応
+=============================================== */
+/* 日本語以外は非表示 */
+:where(:not(:lang(ja))) [translate='no'] {
+    display: none;
+}
+
+/* 日本語は非表示（読み上げのみ）、翻訳は表示 */
+:where(:lang(ja)) [translate='yes'] {
+    position: fixed !important;
+    inset-block-start: 0 !important;
+    inset-inline-start: 0 !important;
+    display: block !important;
+    inline-size: 1px !important;
+    block-size: 1px !important;
+    contain: strict !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+}
+
+/* カーニング調整用 */
+[translate='no'] ruby[data-absolute='true'] {
+    position: relative;
+}
+[translate='no'] ruby[data-absolute='true'] rt {
+    position: absolute;
+    top: -1em;
+    left: 0;
+    word-break: keep-all;
+}
+
+/* Safari */
+_::-webkit-full-page-media,
+_:future,
+:root rt {
+    scale: 0.9;
+    width: 0;
+    height: 1em;
+    transform: translateY(-0.05em);
+    margin-inline-start: -0.25em;
+}
