@@ -22,6 +22,12 @@ interface RubyPair {
     isAbsolute: boolean;
 }
 
+// 言語オプションの型定義
+type LanguageOption = {
+    code: string;
+    name: string;
+};
+
 const RubyTranslator: React.FC = () => {
     const [sourceText, setSourceText] = useState<string>('');
     const [coloredText, setColoredText] = useState<string>('');
@@ -32,6 +38,14 @@ const RubyTranslator: React.FC = () => {
     const [copySuccess, setCopySuccess] = useState<boolean>(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const suggestionsRef = useRef<HTMLDivElement>(null);
+    const [targetLanguage, setTargetLanguage] = useState<string>('ja'); // 初期言語を日本語に設定
+
+    // 言語オプションのリスト
+    const languageOptions: LanguageOption[] = [
+        { code: 'ja', name: '日本語' },
+        { code: 'en', name: '英語' },
+        { code: 'zh-CN', name: '中国語' },
+    ];
 
     useEffect(() => {
         colorizeText();
@@ -65,6 +79,11 @@ const RubyTranslator: React.FC = () => {
 
     const handleAddPair = () => {
         setRubyPairs([...rubyPairs, { tango: '', reading: '', isAbsolute: false }]);
+    };
+
+    const handleLanguageChange = (value: LanguageOption) => {
+        document.documentElement.lang = value.code;
+        setTargetLanguage(value.code);
     };
 
     const copyToClipboard = () => {
@@ -274,13 +293,22 @@ const RubyTranslator: React.FC = () => {
                         単語を追加する
                     </button>
                     <button className="block bg-green-500 text-white px-8 py-2 rounded hover:bg-green-600" onClick={processText}>
-                        ルビ振りテキストに変換する
+                        プレビュー と ルビ振りテキストに変換する
                     </button>
                 </div>
                 {/* プレビュー領域 */}
                 {resultText && (
                     <div className="mt-4">
-                        <h2 className="text-xl font-bold mb-2">プレビュー:</h2>
+                        {/* <div className="flex"> */}
+                            <h2 className="text-xl font-bold mb-2">プレビュー:</h2>
+                            {/* <div className="flex">
+                                {languageOptions.map((option) => (
+                                    <button key={option.code} className={`px-4 py-2 rounded ${option.code === targetLanguage ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`} onClick={() => handleLanguageChange(option)}>
+                                        {option.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div> */}
                         <div className="border p-4 rounded">
                             <div dangerouslySetInnerHTML={{ __html: resultText.split('</span>')[0] }} />
                             <div dangerouslySetInnerHTML={{ __html: resultText.split('</span>')[1] }} />
@@ -291,7 +319,6 @@ const RubyTranslator: React.FC = () => {
                 <div>
                     <label className="block mb-2 font-medium">変換結果:</label>
                     <div className="relative">
-                        {' '}
                         {/* 相対位置指定 */}
                         <textarea
                             ref={textareaRef} // textareaに参照を割り当て
