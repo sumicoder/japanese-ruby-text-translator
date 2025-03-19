@@ -3,18 +3,6 @@ import './App.css';
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import _ from 'lodash';
 
-const API_KEY = import.meta.env.VITE_API_KEY; // 取得したAPIキーを設定
-const genAI = new GoogleGenerativeAI(API_KEY);
-const model = genAI.getGenerativeModel({
-    model: 'gemini-2.0-flash',
-    safetySettings: [
-        {
-            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
-            threshold: HarmBlockThreshold.BLOCK_NONE,
-        },
-    ],
-});
-
 // ルビペアの型定義
 interface RubyPair {
     tango: string;
@@ -38,7 +26,12 @@ const RubyTranslator: React.FC = () => {
     const [copySuccess, setCopySuccess] = useState<boolean>(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const suggestionsRef = useRef<HTMLDivElement>(null);
-    const [targetLanguage, setTargetLanguage] = useState<string>('ja'); // 初期言語を日本語に設定
+    const [targetLanguage, setTargetLanguage] = useState<string>('ja');
+    const [apiKey, setApiKey] = useState<string>('');
+    const [model, setModel] = useState<any>(null);
+    const [apiKeyError, setApiKeyError] = useState<string | null>(null);
+    const [useApiKey, setUseApiKey] = useState<boolean>(false);
+    const [showApiKey, setShowApiKey] = useState<boolean>(false);
 
     // 言語オプションのリスト
     const languageOptions: LanguageOption[] = [
@@ -64,6 +57,31 @@ const RubyTranslator: React.FC = () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, [suggestionsRef]);
+
+    useEffect(() => {
+        if (apiKey && useApiKey) {
+            try {
+                const newGenAI = new GoogleGenerativeAI(apiKey);
+                const newModel = newGenAI.getGenerativeModel({
+                    model: 'gemini-2.0-flash',
+                    safetySettings: [
+                        {
+                            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+                            threshold: HarmBlockThreshold.BLOCK_NONE,
+                        },
+                    ],
+                });
+                setModel(newModel);
+                setApiKeyError(null);
+            } catch (error) {
+                console.error('Error initializing GoogleGenerativeAI:', error);
+                setApiKeyError('APIキーが正しくありません。');
+                setModel(null);
+            }
+        } else {
+            setModel(null);
+        }
+    }, [apiKey, useApiKey]);
 
     const colorizeText = () => {
         let colored = '';
@@ -221,15 +239,50 @@ const RubyTranslator: React.FC = () => {
                     ドキュメント
                 </a>
             </div>
+            <div className="mb-4">
+                <p className="block mb-2 font-medium">Gemini APIキーを使用する:</p>
+                <label className="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="form-checkbox sr-only peer" checked={useApiKey} onChange={(e) => setUseApiKey(e.target.checked)} />
+                    <div className="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600 dark:peer-checked:bg-blue-600"></div>
+                    <span className="ms-3 text-sm font-medium text-gray-900 dark:text-gray-300">使用する</span>
+                </label>
+            </div>
             <div className="grid grid-cols-1 gap-4">
+                {useApiKey && (
+                    <div className="mb-4 relative">
+                        <a href="https://aistudio.google.com/apikey?hl=ja" target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">
+                            Google Gemini APIキーを取得する
+                        </a>
+                        <label className="block mb-2 font-medium">APIキー:</label>
+                        <div className="relative">
+                            <input type={showApiKey ? 'text' : 'password'} className="w-full p-2 border rounded" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="Google Gemini APIキーを入力してください" />
+                            <button type="button" className={`absolute -top-5 left-18 -translate-y-1/2 focus:outline-none cursor-pointer ${showApiKey ? '' : 'before:content before:block before:w-6 before:h-0.5 before:bg-current before:absolute before:top-1/2 before:left-1/2 before:-translate-x-1/2 before:rotate-45'}`} onClick={() => setShowApiKey(!showApiKey)}>
+                                {showApiKey ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                    </svg>
+                                ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                                    </svg>
+                                )}
+                            </button>
+                        </div>
+                        {apiKeyError && <p className="text-red-500">{apiKeyError}</p>}
+                    </div>
+                )}
                 {/* 入力フォーム */}
                 <div className="space-y-4">
                     <div>
                         <label className="block mb-2 font-medium">テキスト入力:</label>
                         <textarea className="w-full h-40 p-2 border rounded" value={sourceText} onChange={(e) => setSourceText(e.target.value)} placeholder="ルビを振りたいテキストを入力してください" />
-                        <button className="mt-2 bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600" onClick={analyzeFullText}>
-                            テキストを解析して単語とふりがなを抽出
-                        </button>
+                        {useApiKey && (
+                            <button className="mt-2 bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600" onClick={analyzeFullText}>
+                                テキストを解析して単語とふりがなを抽出
+                            </button>
+                        )}
                     </div>
                     <label className="block mb-0 font-medium">漢字候補:</label>
                     <div className="p-2 border rounded min-h-24" dangerouslySetInnerHTML={{ __html: coloredText }} />
@@ -300,8 +353,8 @@ const RubyTranslator: React.FC = () => {
                 {resultText && (
                     <div className="mt-4">
                         {/* <div className="flex"> */}
-                            <h2 className="text-xl font-bold mb-2">プレビュー:</h2>
-                            {/* <div className="flex">
+                        <h2 className="text-xl font-bold mb-2">プレビュー:</h2>
+                        {/* <div className="flex">
                                 {languageOptions.map((option) => (
                                     <button key={option.code} className={`px-4 py-2 rounded ${option.code === targetLanguage ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`} onClick={() => handleLanguageChange(option)}>
                                         {option.name}
