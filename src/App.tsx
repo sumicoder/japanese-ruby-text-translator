@@ -10,35 +10,35 @@ interface RubyPair {
     isAbsolute: boolean;
 }
 
-// 言語オプションの型定義
-type LanguageOption = {
-    code: string;
-    name: string;
-};
+// // 言語オプションの型定義
+// type LanguageOption = {
+//     code: string;
+//     name: string;
+// };
 
 const RubyTranslator: React.FC = () => {
     const [sourceText, setSourceText] = useState<string>('');
     const [coloredText, setColoredText] = useState<string>('');
     const [rubyPairs, setRubyPairs] = useState<RubyPair[]>([{ tango: '', reading: '', isAbsolute: false }]);
     const [resultText, setResultText] = useState<string>('');
-    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [suggestions, setSuggestions] = useState<any[]>([]);
     const [activePairIndex, setActivePairIndex] = useState<number | null>(null);
     const [copySuccess, setCopySuccess] = useState<boolean>(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const suggestionsRef = useRef<HTMLDivElement>(null);
-    const [targetLanguage, setTargetLanguage] = useState<string>('ja');
+    // const [targetLanguage, setTargetLanguage] = useState<string>('ja');
     const [apiKey, setApiKey] = useState<string>('');
     const [model, setModel] = useState<any>(null);
     const [apiKeyError, setApiKeyError] = useState<string | null>(null);
     const [useApiKey, setUseApiKey] = useState<boolean>(false);
     const [showApiKey, setShowApiKey] = useState<boolean>(false);
 
-    // 言語オプションのリスト
-    const languageOptions: LanguageOption[] = [
-        { code: 'ja', name: '日本語' },
-        { code: 'en', name: '英語' },
-        { code: 'zh-CN', name: '中国語' },
-    ];
+    // // 言語オプションのリスト
+    // const languageOptions: LanguageOption[] = [
+    //     { code: 'ja', name: '日本語' },
+    //     { code: 'en', name: '英語' },
+    //     { code: 'zh-CN', name: '中国語' },
+    // ];
 
     useEffect(() => {
         colorizeText();
@@ -99,10 +99,10 @@ const RubyTranslator: React.FC = () => {
         setRubyPairs([...rubyPairs, { tango: '', reading: '', isAbsolute: false }]);
     };
 
-    const handleLanguageChange = (value: LanguageOption) => {
-        document.documentElement.lang = value.code;
-        setTargetLanguage(value.code);
-    };
+    // const handleLanguageChange = (value: LanguageOption) => {
+    //     document.documentElement.lang = value.code;
+    //     setTargetLanguage(value.code);
+    // };
 
     const copyToClipboard = () => {
         if (textareaRef.current) {
@@ -194,12 +194,11 @@ const RubyTranslator: React.FC = () => {
             // 漢字と読み仮名のペアを抽出（正規表現で抽出）
             const pairs = text
                 .split('\n')
-                .map((line) => line.match(/([\u4e00-\u9faf\u3040-\u309F\u30A0-\u30FF]+):([\u3040-\u309F]+)/))
-                .filter((match) => match !== null)
-                .map((match) => ({ tango: match[1], reading: match[2], isAbsolute: false }));
-
+                .map((line : string) => line.match(/([\u4e00-\u9faf\u3040-\u309F\u30A0-\u30FF]+):([\u3040-\u309F]+)/))
+                .filter((match : any) => match !== null)
+                .map((match : any) => ({ tango: match[1], reading: match[2], isAbsolute: false }));
             // 重複を除外
-            const uniquePairs: RubyPair[] = _.uniqBy(pairs, 'tango');
+            const uniquePairs: RubyPair[] = _.uniqBy(pairs, (pair) => pair.tango);
 
             if (uniquePairs.length > 0) {
                 setRubyPairs(uniquePairs);
